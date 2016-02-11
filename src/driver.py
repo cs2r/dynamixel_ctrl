@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 import rospy
-import math
+import math, time
 
 from dynamixel_msgs.msg import JointState
-from std_msgs.msg import Float64
+from dynamixel_controllers.srv import TorqueEnable
+from std_msgs.msg import Float64, String
 
 class arm_driver():
     def __init__(self):
@@ -12,12 +13,30 @@ class arm_driver():
         self.motor_pub = dict()
         self.cmd = dict()
         self.angle = dict()
+        self.torque = dict()
         self.joint_roll = self.angle_cmd(4, 0)
         for i in range(1, 6):
             rospy.Subscriber("/m" + str(i) + "_controller/state", JointState, self.get_motor_stat, callback_args=i)
             self.motor_pub[str(i)] = rospy.Publisher("/m" + str(i) + "_controller/command", Float64, queue_size=1)
             rospy.Subscriber("hek/" + self.joint_name[i-1] + "_joint_position_controller/command", Float64, self.set_cmd, callback_args=i)
             self.angle[str(i)] = rospy.Publisher("/motor" + str(i) + "_angle", Float64, queue_size=1)
+            rospy.wait_for_service("/m" + str(i) + "_controller/torque_enable")
+            self.torque[str(i)] = rospy.ServiceProxy("/m" + str(i) + "_controller/torque_enable", TorqueEnable)
+
+        rospy.Subscriber("/hek/status", String, self.get_robot_status)
+
+
+
+
+    def get_robot_status(self, data):
+        sleep_cmd = [0.71, 0.76, 0.06, 0.0, 0.0]
+        if data.data == "sleep":
+            for i in range(1, 6):
+                self.motor_pub[str(i)].publish(sleep_cmd[i-1])
+
+            time.sleep(5)
+            for i in range(1, 6):
+                self.torque[str(i)](False)
 
 
 
