@@ -1,0 +1,14 @@
+<launch>
+    <rosparam file="$(find dynamixel_ctrl)/param/joints_param.yaml" command="load"/>
+	<include file="$(find dynamixel_ctrl)/launch/connect.launch" />
+    <node name="controller_spawner" pkg="dynamixel_controllers" type="controller_spawner.py"
+          args="--manager=dxl_manager
+                --port robotic_arm_port
+                m1_controller
+				m2_controller
+				m3_controller
+				m4_controller
+				m5_controller"
+          output="screen"/>
+</launch>
+
