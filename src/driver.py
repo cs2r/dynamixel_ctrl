@@ -17,6 +17,8 @@ class arm_driver():
             self.motor_pub[str(i)] = rospy.Publisher("/m" + str(i) + "_controller/command", Float64, queue_size=1)
             rospy.Subscriber("cmd_" + str(i), Float64, self.set_cmd, callback_args=i)
             self.angle[str(i)] = rospy.Publisher("/motor" + str(i) + "_angle", Float64, queue_size=1)
+        self.motor_pub[str(4)].publish(0)
+
 
     def get_motor_stat(self, data, i):
         self.motor[int(data.motor_ids[0])] = {"name": data.name,
@@ -28,24 +30,36 @@ class arm_driver():
                                            "velocity": math.degrees(data.velocity),
                                            "load": data.load,
                                            "is_moving": data.is_moving}
-        if (i == 4 | i == 3):
-            self.joint_roll = self.motor[4]["current_pos"] - self.motor[3]["current_pos"]
 
         if (i == 4):
+            self.motor_pub[str(4)].publish(math.radians(-self.motor[3]["current_pos"] + self.joint_roll))
             self.angle[str(4)].publish(self.joint_roll)
-
-        self.angle[str(i)].publish(self.motor[i]["current_pos"])
+        else:
+            self.angle[str(i)].publish(self.motor[i]["current_pos"])
 
     def set_cmd(self, data, i):
-        if (i == 3):
-            self.motor_pub[str(3)].publish(math.radians(data.data))
-            print (-data.data + self.joint_roll)
-            self.motor_pub[str(4)].publish(math.radians(-data.data + self.joint_roll))
-        elif (i == 4):
-            self.joint_roll = data.data
-            self.motor_pub[str(4)].publish(math.radians(-self.motor[3]["current_pos"] + self.joint_roll))
+        if (i == 4):
+            self.joint_roll = self.angle_cmd(i, data.data)
+
         else:
-            self.motor_pub[str(i)].publish(math.radians(data.data))
+            self.motor_pub[str(i)].publish(math.radians(self.angle_cmd(i, data.data)))
+
+    def angle_cmd(self, joint, cmd):
+        if joint == 1:
+            angle = 35.0/18.0*cmd+45.0/2.0
+            return angle
+        elif joint == 2:
+            angle = 89.0/90.0*cmd+179.0
+            return angle
+        elif joint == 3:
+            angle = -3.0/2.0*cmd+175.0
+            return angle
+        elif joint == 4:
+            angle = -3.0/2.0*cmd+270.0
+            return angle
+        elif joint == 5:
+            angle = 32.0/25.0*cmd+75.0
+            return angle
 
 
 if __name__ == '__main__':
