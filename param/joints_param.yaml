@@ -34,7 +34,7 @@ m3_controller:
     motor:
         id: 3
         init: 0
-        min: 600 #685
+        min: 200 #685
         max: 3765
 
 m4_controller:
