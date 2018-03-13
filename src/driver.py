@@ -11,13 +11,14 @@ class arm_driver():
         self.motor_pub = dict()
         self.cmd = dict()
         self.angle = dict()
-        self.joint_roll = 0
+        self.joint_roll = self.angle_cmd(4, 0)
         for i in range(1, 6):
             rospy.Subscriber("/m" + str(i) + "_controller/state", JointState, self.get_motor_stat, callback_args=i)
             self.motor_pub[str(i)] = rospy.Publisher("/m" + str(i) + "_controller/command", Float64, queue_size=1)
             rospy.Subscriber("cmd_" + str(i), Float64, self.set_cmd, callback_args=i)
             self.angle[str(i)] = rospy.Publisher("/motor" + str(i) + "_angle", Float64, queue_size=1)
-        self.motor_pub[str(4)].publish(0)
+
+
 
 
     def get_motor_stat(self, data, i):
