@@ -10,5 +10,5 @@
 				m4_controller
 				m5_controller"
           output="screen"/>
+    <node name="arm_driver" pkg="dynamixel_ctrl" type="driver.py" output="screen"/>
 </launch>
-
